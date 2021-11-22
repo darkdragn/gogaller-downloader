@@ -12,7 +12,7 @@ type DownloadCmd struct {
 }
 
 type Rule34xxxCmd struct {
-	Url string `arg:"" name:"url" help:"The gallery URL to download from."`
+	Tag string `arg:"" name:"tag" help:"The gallery tag to download from."`
 }
 
 func (r *DownloadCmd) Run(debug bool) error {
@@ -44,11 +44,11 @@ func (r *Rule34xxxCmd) Run(debug bool) error {
 	logger := log.New()
 	logger.SetLevel(logLevel)
 	c := gocyberdrop.New(*logger)
-	g := rule34xxx.Gallery{
+	g := rule34xxx.R34xGallery{
 		Client: c,
-		URL:    r.Url,
+		Tag:    r.Tag,
 	}
-	err := g.PullGallery()
+	err := rule34xxx.PullGallery(&g)
 	if err != nil {
 		return err
 	}

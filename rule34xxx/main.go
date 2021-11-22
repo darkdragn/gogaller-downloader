@@ -15,47 +15,88 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Gallery struct {
-	Client gocyberdrop.Client
-	URL    string
+type Gallery interface {
+	GetClient() gocyberdrop.Client
+	Title() string
+	ImageList() []Image
+	Logger() *log.Logger
 }
 
-func (g *Gallery) PullGallery() error {
-	doc := g.Client.LoadDoc(g.URL)
-	u, _ := url.Parse(g.URL)
-	title := u.Query()["tags"][0]
+type R34xGallery struct {
+	Client gocyberdrop.Client
+	Tag    string
+}
 
-	g.Client.Logger.Info(title)
-	os.Mkdir(title, 0755)
+func (g *R34xGallery) Title() string {
+	return g.Tag
+}
 
-	var imgs []Image
-	var wg sync.WaitGroup
-	completion := make(chan bool, 1)
-	count := int64(0)
+func (g *R34xGallery) GetClient() gocyberdrop.Client {
+	return g.Client
+}
 
+func (g *R34xGallery) Logger() *log.Logger {
+	return &g.Client.Logger
+}
+
+func (g *R34xGallery) ImageList() (imgs []Image) {
+	u, _ := url.Parse("https://rule34.xxx/index.php?page=post&s=list")
+	q := u.Query()
+	q.Set("tags", g.Tag)
+	u.RawQuery = q.Encode()
+
+	doc := g.Client.LoadDoc(u.String())
 	pid := g.FindLast(*doc)
-	for i := 0; i <= pid; i += 42 {
-		q := u.Query()
-		q.Set("pid", strconv.Itoa(i))
-		u.RawQuery = q.Encode()
-		doc = g.Client.LoadDoc(u.String())
+
+	var wg sync.WaitGroup
+	imgChan := make(chan Image)
+	pullPage := func(url string) {
+		doc = g.Client.LoadDoc(url)
 		selection := doc.Find("span.thumb a")
 
 		selection.Each(func(i int, s *goquery.Selection) {
 			url, exists := s.Attr("href")
 			if exists {
 				img := g.ParsePost(url)
-				imgs = append(imgs, img)
-				// wg.Add(1)
-				// go g.Client.PullImage(img.Url, img.Filename, title, completion, &wg)
+				imgChan <- img
 			}
 		})
+		wg.Done()
 	}
+	for i := 0; i <= pid; i += 42 {
+		q := u.Query()
+		q.Set("pid", strconv.Itoa(i))
+		u.RawQuery = q.Encode()
+		wg.Add(1)
+		go pullPage(u.String())
+	}
+	go func() {
+		wg.Wait()
+		close(imgChan)
+	}()
+	for img := range imgChan {
+		imgs = append(imgs, img)
+	}
+	return
+}
+
+func PullGallery(g Gallery) error {
+
+	title := g.Title()
+	logger := g.Logger()
+	logger.Info(title)
+	os.Mkdir(title, 0755)
+
+	var wg sync.WaitGroup
+	client := g.GetClient()
+	completion := make(chan bool, 1)
+	count := int64(0)
+	imgs := g.ImageList()
 
 	bar := progressbar.Default(int64(len(imgs)))
 	for _, img := range imgs {
 		wg.Add(1)
-		go g.Client.PullImage(img.Url, img.Filename, title, completion, &wg)
+		go client.PullImage(img.Url, img.Filename, title, completion, &wg)
 	}
 	go func() {
 		for range completion {
@@ -67,7 +108,7 @@ func (g *Gallery) PullGallery() error {
 	time.Sleep(100 * time.Millisecond)
 	if count < int64(len(imgs)) {
 		fmt.Printf("\n")
-		g.Client.Logger.
+		logger.
 			WithFields(log.Fields{
 				"Total":   len(imgs),
 				"Current": count,
@@ -92,7 +133,7 @@ func NewImage(input string) Image {
 	return Image{input, fn}
 }
 
-func (g *Gallery) FindLast(doc goquery.Document) int {
+func (g *R34xGallery) FindLast(doc goquery.Document) int {
 	sel := doc.Find(".pagination a").Last()
 	page, exists := sel.Attr("href")
 	if exists {
@@ -103,7 +144,7 @@ func (g *Gallery) FindLast(doc goquery.Document) int {
 	}
 	return 0
 }
-func (g *Gallery) ParsePost(post string) Image {
+func (g *R34xGallery) ParsePost(post string) Image {
 	base := "https://rule34.xxx/"
 	doc := g.Client.LoadDoc(base + post)
 	selection := doc.Find("meta[property='og:image']").First()
