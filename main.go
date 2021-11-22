@@ -17,18 +17,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Cyberdrop struct {
+type Client struct {
 	Logger log.Logger
 	Client http.Client
 }
 
-func New(logger log.Logger) Cyberdrop {
+func New(logger log.Logger) Client {
 	transport := &http.Transport{
 		MaxIdleConns:        10,
 		MaxIdleConnsPerHost: 5,
 		IdleConnTimeout:     5 * time.Second,
 	}
-	return Cyberdrop{
+	return Client{
 		Logger: logger,
 		Client: http.Client{
 			Transport: transport,
@@ -36,22 +36,14 @@ func New(logger log.Logger) Cyberdrop {
 	}
 }
 
-func (c *Cyberdrop) catch(err error) {
+func (c *Client) Catch(err error) {
 	if err != nil {
 		c.Logger.Fatal(err)
 	}
 }
 
-func (c *Cyberdrop) PullGallery(s string) error {
-	res, err := http.Get(s)
-	c.catch(err)
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		c.Logger.Fatal("status code error: %d %s", res.StatusCode, res.Status)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	c.catch(err)
+func (c *Client) PullGallery(s string) error {
+	doc := c.LoadDoc(s)
 
 	var wg sync.WaitGroup
 	completion := make(chan bool, 1)
@@ -68,7 +60,9 @@ func (c *Cyberdrop) PullGallery(s string) error {
 		url, exists := s.Attr("href")
 		if exists {
 			wg.Add(1)
-			go c.PullImage(url, title, completion, &wg)
+			p := strings.Split(url, "/")
+			fn := p[len(p)-1]
+			go c.PullImage(url, fn, title, completion, &wg)
 		}
 	})
 	go func() {
@@ -94,16 +88,13 @@ func (c *Cyberdrop) PullGallery(s string) error {
 	return nil
 }
 
-func (c *Cyberdrop) PullImage(s string, folder string, completion chan bool, wg *sync.WaitGroup) {
-	p := strings.Split(s, "/")
-	fn := path.Join(folder, p[len(p)-1])
+func (c *Client) PullImage(s string, filename string, folder string, completion chan bool, wg *sync.WaitGroup) {
+	fn := path.Join(folder, filename)
 
 	pullAndWrite := func() error {
 		if strings.Contains(s, "web.archive") {
 			s = strings.Replace(s, "/https", "if_/https", 1)
 		}
-		//client := http.Client{}
-		//resp, err := client.Get(s)
 		req, _ := http.NewRequest("GET", s, nil)
 		req.Header.Set("Connection", "keep-alive")
 		resp, err := c.Client.Do(req)
@@ -113,7 +104,7 @@ func (c *Cyberdrop) PullImage(s string, folder string, completion chan bool, wg 
 		defer resp.Body.Close()
 
 		out, err := os.Create(fn)
-		c.catch(err)
+		c.Catch(err)
 
 		if _, err := out.ReadFrom(resp.Body); err != nil {
 			out.Close()
@@ -144,4 +135,17 @@ func (c *Cyberdrop) PullImage(s string, folder string, completion chan bool, wg 
 		completion <- true
 	}
 	wg.Done()
+}
+
+func (c *Client) LoadDoc(url string) *goquery.Document {
+	res, err := c.Client.Get(url)
+	c.Catch(err)
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		c.Logger.Fatal("status code error: %d %s", res.StatusCode, res.Status)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	c.Catch(err)
+	return doc
 }

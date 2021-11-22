@@ -3,11 +3,16 @@ package main
 import (
 	"github.com/alecthomas/kong"
 	"github.com/darkdragn/gocyberdrop"
+	"github.com/darkdragn/gocyberdrop/rule34xxx"
 	log "github.com/sirupsen/logrus"
 )
 
 type DownloadCmd struct {
 	Url []string `arg:"" name:"url" help:"The gallery URL to download from."`
+}
+
+type Rule34xxxCmd struct {
+	Url string `arg:"" name:"url" help:"The gallery URL to download from."`
 }
 
 func (r *DownloadCmd) Run(debug bool) error {
@@ -29,9 +34,31 @@ func (r *DownloadCmd) Run(debug bool) error {
 	return nil
 }
 
+func (r *Rule34xxxCmd) Run(debug bool) error {
+	var logLevel log.Level
+	if debug {
+		logLevel = log.DebugLevel
+	} else {
+		logLevel = log.InfoLevel
+	}
+	logger := log.New()
+	logger.SetLevel(logLevel)
+	c := gocyberdrop.New(*logger)
+	g := rule34xxx.Gallery{
+		Client: c,
+		URL:    r.Url,
+	}
+	err := g.PullGallery()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 var cli struct {
-	Debug bool `help:"Run the logger in debug mode."`
-	Download DownloadCmd `cmd:"" help:"Download a cyberdrop gallery"`
+	Debug     bool         `help:"Run the logger in debug mode."`
+	Download  DownloadCmd  `cmd:"" help:"Download a cyberdrop gallery"`
+	Rule34xxx Rule34xxxCmd `cmd:"" help:"Download a cyberdrop gallery"`
 }
 
 func main() {
