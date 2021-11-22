@@ -50,7 +50,9 @@ func (g *R34xGallery) ImageList() (imgs []Image) {
 
 	var wg sync.WaitGroup
 	imgChan := make(chan Image)
+	limit := make(chan bool, 3)
 	pullPage := func(url string) {
+		limit <- true
 		doc = g.Client.LoadDoc(url)
 		selection := doc.Find("span.thumb a")
 
@@ -62,6 +64,7 @@ func (g *R34xGallery) ImageList() (imgs []Image) {
 			}
 		})
 		wg.Done()
+		<-limit
 	}
 	for i := 0; i <= pid; i += 42 {
 		q := u.Query()

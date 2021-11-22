@@ -38,7 +38,7 @@ func New(logger log.Logger) Client {
 
 func (c *Client) Catch(err error) {
 	if err != nil {
-		c.Logger.Fatal(err)
+		c.Logger.Panic(err)
 	}
 }
 
