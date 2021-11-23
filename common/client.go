@@ -59,7 +59,9 @@ func (c *Client) PullImage(s string, filename string, folder string, completion 
 			s = strings.Replace(s, "/https", "if_/https", 1)
 		}
 		req, _ := http.NewRequest("GET", s, nil)
-		req.Header.Set("Connection", "keep-alive")
+		req.Header.Set("Cache-Control", "max-age=0")
+		req.Header.Set("Accept-Encoding", "identity,compress,deflate,gzip")
+        req.Close = true
 		resp, err := c.Client.Do(req)
 		if err != nil {
 			return errors.New("couldn't open url; " + err.Error())
