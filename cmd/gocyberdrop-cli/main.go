@@ -24,7 +24,7 @@ func (r *DownloadCmd) Run(debug bool) error {
 	}
 	logger := log.New()
 	logger.SetLevel(logLevel)
-	c := gocyberdrop.New(*logger)
+	c := gocyberdrop.New(logger, 15)
 	for _, url := range r.Url {
 		err := c.PullGallery(url)
 		if err != nil {
@@ -43,7 +43,7 @@ func (r *Rule34xxxCmd) Run(debug bool) error {
 	}
 	logger := log.New()
 	logger.SetLevel(logLevel)
-	c := gocyberdrop.New(*logger)
+	c := gocyberdrop.New(logger, 15)
 	g := rule34xxx.R34xGallery{
 		Client: c,
 		Tag:    r.Tag,
@@ -65,9 +65,9 @@ func main() {
 	ctx := kong.Parse(&cli,
 		kong.Description(`
 A command for downloading from cyberdrop.me.
-  Note: 
-    To find some good ones, try google searching: site:cyberdrop.me $WhoYouWant
-    For example: site:cyberdrop.me carrykey`,
+	Note:
+		To find some good ones, try google searching: site:cyberdrop.me $WhoYouWant
+		For example: site:cyberdrop.me carrykey`,
 		),
 		kong.UsageOnError(),
 	)

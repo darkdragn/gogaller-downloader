@@ -36,7 +36,7 @@ func (g *R34xGallery) GetClient() gocyberdrop.Client {
 }
 
 func (g *R34xGallery) Logger() *log.Logger {
-	return &g.Client.Logger
+	return g.Client.Logger
 }
 
 func (g *R34xGallery) ImageList() (imgs []Image) {
@@ -97,16 +97,19 @@ func PullGallery(g Gallery) error {
 	imgs := g.ImageList()
 
 	bar := progressbar.Default(int64(len(imgs)))
-	for _, img := range imgs {
-		wg.Add(1)
-		go client.PullImage(img.Url, img.Filename, title, completion, &wg)
-	}
+	limit := make(chan bool, 50)
 	go func() {
 		for range completion {
 			count += 1
 			bar.Add(1)
+			<-limit
 		}
 	}()
+	for _, img := range imgs {
+		wg.Add(1)
+		limit <- true
+		go client.PullImage(img.Url, img.Filename, title, completion, &wg)
+	}
 	wg.Wait()
 	time.Sleep(100 * time.Millisecond)
 	if count < int64(len(imgs)) {

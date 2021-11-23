@@ -18,15 +18,15 @@ import (
 )
 
 type Client struct {
-	Logger log.Logger
+	Logger *log.Logger
 	Client http.Client
 }
 
-func New(logger log.Logger) Client {
+func New(logger *log.Logger, maxConnsPerHost int) Client {
 	transport := &http.Transport{
-		MaxIdleConns:        10,
-		MaxIdleConnsPerHost: 5,
-		IdleConnTimeout:     5 * time.Second,
+		MaxIdleConns:    10,
+		MaxConnsPerHost: maxConnsPerHost,
+		IdleConnTimeout: 10 * time.Second,
 	}
 	return Client{
 		Logger: logger,
@@ -142,7 +142,7 @@ func (c *Client) LoadDoc(url string) *goquery.Document {
 	c.Catch(err)
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		c.Logger.Fatal("status code error: %d %s", res.StatusCode, res.Status)
+		c.Logger.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
