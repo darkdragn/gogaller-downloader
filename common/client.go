@@ -1,6 +1,7 @@
 package common
 
 import (
+	"crypto/tls"
 	"errors"
 	"net/http"
 	"os"
@@ -20,6 +21,7 @@ type Client struct {
 
 func New(logger *log.Logger, maxConnsPerHost int) Client {
 	transport := &http.Transport{
+		TLSNextProto:    map[string]func(string, *tls.Conn) http.RoundTripper{},
 		MaxIdleConns:    10,
 		MaxConnsPerHost: maxConnsPerHost,
 		IdleConnTimeout: 10 * time.Second,
@@ -61,7 +63,7 @@ func (c *Client) PullImage(s string, filename string, folder string, completion 
 		req, _ := http.NewRequest("GET", s, nil)
 		req.Header.Set("Cache-Control", "max-age=0")
 		req.Header.Set("Accept-Encoding", "identity,compress,deflate,gzip")
-        req.Close = true
+		req.Close = true
 		resp, err := c.Client.Do(req)
 		if err != nil {
 			return errors.New("couldn't open url; " + err.Error())
