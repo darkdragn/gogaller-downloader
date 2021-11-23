@@ -7,12 +7,12 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/darkdragn/gocyberdrop/common"
-	"github.com/darkdragn/gocyberdrop/sites/cyberdrop"
+
 	log "github.com/sirupsen/logrus"
 )
 
 type R34xGallery struct {
-	Client cyberdrop.Client
+	Client common.Client
 	Tag    string
 }
 
@@ -20,7 +20,7 @@ func (g *R34xGallery) Title() string {
 	return g.Tag
 }
 
-func (g *R34xGallery) GetClient() cyberdrop.Client {
+func (g *R34xGallery) GetClient() common.Client {
 	return g.Client
 }
 

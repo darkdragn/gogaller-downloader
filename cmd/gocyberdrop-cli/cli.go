@@ -17,9 +17,17 @@ type Rule34xxxCmd struct {
 }
 
 func (r *DownloadCmd) Run(logger *log.Logger) error {
-	c := cyberdrop.New(logger, 15)
+	c := common.New(logger, 15)
+	var gals []cyberdrop.CyberdropGallery
 	for _, url := range r.Url {
-		err := c.PullGallery(url)
+		g := cyberdrop.CyberdropGallery{
+			Client: c,
+			Url:    url,
+		}
+		gals = append(gals, g)
+	}
+	for _, gal := range gals {
+		err := common.PullGallery(&gal)
 		if err != nil {
 			return err
 		}
@@ -28,7 +36,7 @@ func (r *DownloadCmd) Run(logger *log.Logger) error {
 }
 
 func (r *Rule34xxxCmd) Run(logger *log.Logger) error {
-	c := cyberdrop.New(logger, 15)
+	c := common.New(logger, 15)
 	g := rule34xxx.R34xGallery{
 		Client: c,
 		Tag:    r.Tag,

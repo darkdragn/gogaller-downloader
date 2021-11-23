@@ -8,13 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/darkdragn/gocyberdrop/sites/cyberdrop"
 	"github.com/schollz/progressbar/v3"
 	log "github.com/sirupsen/logrus"
 )
 
 type Gallery interface {
-	GetClient() cyberdrop.Client
+	GetClient() Client
 	Title() string
 	ImageList() []Image
 	Logger() *log.Logger
