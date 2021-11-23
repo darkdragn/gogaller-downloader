@@ -1,4 +1,4 @@
-module github.com/darkdragn/gocyberdrop
+module github.com/darkdragn/gogallery-downloader
 
 go 1.17
 

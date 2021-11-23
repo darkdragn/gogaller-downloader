@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/darkdragn/gocyberdrop/common"
+	"github.com/darkdragn/gogallery-downloader/common"
 	log "github.com/sirupsen/logrus"
 )
 

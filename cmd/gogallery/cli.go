@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/alecthomas/kong"
-	"github.com/darkdragn/gocyberdrop/common"
-	"github.com/darkdragn/gocyberdrop/sites/cyberdrop"
-	"github.com/darkdragn/gocyberdrop/sites/rule34xxx"
+	"github.com/darkdragn/gogallery-downloader/common"
+	"github.com/darkdragn/gogallery-downloader/sites/cyberdrop"
+	"github.com/darkdragn/gogallery-downloader/sites/rule34xxx"
 	log "github.com/sirupsen/logrus"
 )
 
