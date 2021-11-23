@@ -1,4 +1,4 @@
-package gocyberdrop
+package cyberdrop
 
 import (
 	"errors"

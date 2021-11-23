@@ -2,8 +2,9 @@ package main
 
 import (
 	"github.com/alecthomas/kong"
-	"github.com/darkdragn/gocyberdrop"
-	"github.com/darkdragn/gocyberdrop/rule34xxx"
+	"github.com/darkdragn/gocyberdrop/common"
+	"github.com/darkdragn/gocyberdrop/sites/cyberdrop"
+	"github.com/darkdragn/gocyberdrop/sites/rule34xxx"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -15,16 +16,8 @@ type Rule34xxxCmd struct {
 	Tag string `arg:"" name:"tag" help:"The gallery tag to download from."`
 }
 
-func (r *DownloadCmd) Run(debug bool) error {
-	var logLevel log.Level
-	if debug {
-		logLevel = log.DebugLevel
-	} else {
-		logLevel = log.InfoLevel
-	}
-	logger := log.New()
-	logger.SetLevel(logLevel)
-	c := gocyberdrop.New(logger, 15)
+func (r *DownloadCmd) Run(logger *log.Logger) error {
+	c := cyberdrop.New(logger, 15)
 	for _, url := range r.Url {
 		err := c.PullGallery(url)
 		if err != nil {
@@ -34,21 +27,13 @@ func (r *DownloadCmd) Run(debug bool) error {
 	return nil
 }
 
-func (r *Rule34xxxCmd) Run(debug bool) error {
-	var logLevel log.Level
-	if debug {
-		logLevel = log.DebugLevel
-	} else {
-		logLevel = log.InfoLevel
-	}
-	logger := log.New()
-	logger.SetLevel(logLevel)
-	c := gocyberdrop.New(logger, 15)
+func (r *Rule34xxxCmd) Run(logger *log.Logger) error {
+	c := cyberdrop.New(logger, 15)
 	g := rule34xxx.R34xGallery{
 		Client: c,
 		Tag:    r.Tag,
 	}
-	err := rule34xxx.PullGallery(&g)
+	err := common.PullGallery(&g)
 	if err != nil {
 		return err
 	}
@@ -61,6 +46,18 @@ var cli struct {
 	Rule34xxx Rule34xxxCmd `cmd:"" help:"Download a cyberdrop gallery"`
 }
 
+func generateLogger() *log.Logger {
+	var logLevel log.Level
+	if cli.Debug {
+		logLevel = log.DebugLevel
+	} else {
+		logLevel = log.InfoLevel
+	}
+	logger := log.New()
+	logger.SetLevel(logLevel)
+	return logger
+}
+
 func main() {
 	ctx := kong.Parse(&cli,
 		kong.Description(`
@@ -71,6 +68,6 @@ A command for downloading from cyberdrop.me.
 		),
 		kong.UsageOnError(),
 	)
-	err := ctx.Run(cli.Debug)
+	err := ctx.Run(generateLogger())
 	ctx.FatalIfErrorf(err)
 }
