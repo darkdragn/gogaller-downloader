@@ -1,11 +1,9 @@
 ---
 name: "tagged-release"
-
 on:
   push:
     tags:
       - "v*"
-
 jobs:
   tagged-release:
     name: "Tagged Release"
@@ -15,3 +13,4 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
+          draft: false
