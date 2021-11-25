@@ -1,3 +1,9 @@
+## v0.1.6 (2021-11-25)
+
+### Fix
+
+- testing ci changes, will revert
+
 ## v0.1.5 (2021-11-25)
 
 ### Fix
