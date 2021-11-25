@@ -14,9 +14,21 @@ import (
 
 type Gallery interface {
 	GetClient() Client
+	Logger() *log.Logger
 	Title() string
 	ImageList() []Image
-	Logger() *log.Logger
+}
+
+type GalleryBase struct {
+	Client
+}
+
+func (g *GalleryBase) GetClient() Client {
+	return g.Client
+}
+
+func (g *GalleryBase) Logger() *log.Logger {
+	return g.Client.Logger
 }
 
 func PullGallery(g Gallery) error {

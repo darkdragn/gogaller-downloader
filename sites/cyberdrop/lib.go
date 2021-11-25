@@ -1,42 +1,30 @@
 package cyberdrop
 
 import (
-
-	// "log"
-
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/darkdragn/gogallery-downloader/common"
-	log "github.com/sirupsen/logrus"
 )
 
 type CyberdropGallery struct {
-	Client common.Client
-	Url    string
-	doc    *goquery.Document
+	common.GalleryBase
+	Url string
+	doc *goquery.Document
 }
 
 func (g *CyberdropGallery) Title() string {
 	doc := g.Document()
 	title, exists := doc.Find("h1").Attr("title")
 	if !exists {
-		g.Client.Logger.Fatal("Unable to find a title")
+		g.Logger().Fatal("Unable to find a title")
 	}
 	return title
 }
 
-func (g *CyberdropGallery) GetClient() common.Client {
-	return g.Client
-}
-
-func (g *CyberdropGallery) Logger() *log.Logger {
-	return g.Client.Logger
-}
-
 func (g *CyberdropGallery) Document() *goquery.Document {
 	if g.doc == nil {
-		g.doc = g.Client.LoadDoc(g.Url)
+		g.doc = g.LoadDoc(g.Url)
 	}
 	return g.doc
 }

@@ -96,7 +96,6 @@ func (c *Client) PullImage(s string, filename string, folder string, completion 
 					"Error": err,
 				}).
 				Debug("Failed download")
-			//time.Sleep(500 * time.Millisecond)
 		}
 	} else {
 		completion <- true

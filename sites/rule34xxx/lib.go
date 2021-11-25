@@ -7,25 +7,15 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/darkdragn/gogallery-downloader/common"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type R34xGallery struct {
-	Client common.Client
-	Tag    string
+	common.GalleryBase
+	Tag string
 }
 
 func (g *R34xGallery) Title() string {
 	return g.Tag
-}
-
-func (g *R34xGallery) GetClient() common.Client {
-	return g.Client
-}
-
-func (g *R34xGallery) Logger() *log.Logger {
-	return g.Client.Logger
 }
 
 func (g *R34xGallery) ImageList() (imgs []common.Image) {
@@ -34,7 +24,7 @@ func (g *R34xGallery) ImageList() (imgs []common.Image) {
 	q.Set("tags", g.Tag)
 	u.RawQuery = q.Encode()
 
-	doc := g.Client.LoadDoc(u.String())
+	doc := g.LoadDoc(u.String())
 	pid := g.FindLast(*doc)
 
 	var wg sync.WaitGroup
@@ -42,7 +32,7 @@ func (g *R34xGallery) ImageList() (imgs []common.Image) {
 	limit := make(chan bool, 3)
 	pullPage := func(url string) {
 		limit <- true
-		doc = g.Client.LoadDoc(url)
+		doc = g.LoadDoc(url)
 		selection := doc.Find("span.thumb a")
 
 		selection.Each(func(i int, s *goquery.Selection) {
@@ -85,7 +75,7 @@ func (g *R34xGallery) FindLast(doc goquery.Document) int {
 }
 func (g *R34xGallery) ParsePost(post string) common.Image {
 	base := "https://rule34.xxx/"
-	doc := g.Client.LoadDoc(base + post)
+	doc := g.LoadDoc(base + post)
 	selection := doc.Find("meta[property='og:image']").First()
 	output, _ := selection.Attr("content")
 	return common.NewImage(output)
