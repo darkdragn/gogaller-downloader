@@ -8,7 +8,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type DownloadCmd struct {
+var appVersion string
+var buildTime string
+
+type VersionCmd struct{}
+
+type CyberdropCmd struct {
 	Url []string `arg:"" name:"url" help:"The gallery URL to download from."`
 }
 
@@ -16,13 +21,13 @@ type Rule34xxxCmd struct {
 	Tag string `arg:"" name:"tag" help:"The gallery tag to download from."`
 }
 
-func (r *DownloadCmd) Run(logger *log.Logger) error {
+func (r *CyberdropCmd) Run(logger *log.Logger) error {
 	c := common.New(logger, 15)
 	var gals []cyberdrop.CyberdropGallery
 	for _, url := range r.Url {
 		g := cyberdrop.CyberdropGallery{
-			Client: c,
-			Url:    url,
+			GalleryBase: common.GalleryBase{Client: c},
+			Url:         url,
 		}
 		gals = append(gals, g)
 	}
@@ -38,8 +43,8 @@ func (r *DownloadCmd) Run(logger *log.Logger) error {
 func (r *Rule34xxxCmd) Run(logger *log.Logger) error {
 	c := common.New(logger, 15)
 	g := rule34xxx.R34xGallery{
-		Client: c,
-		Tag:    r.Tag,
+		GalleryBase: common.GalleryBase{Client: c},
+		Tag:         r.Tag,
 	}
 	err := common.PullGallery(&g)
 	if err != nil {
@@ -48,10 +53,18 @@ func (r *Rule34xxxCmd) Run(logger *log.Logger) error {
 	return nil
 }
 
+func (r *VersionCmd) Run(logger *log.Logger) error {
+	logger.Printf(`GoGallery Build Info:
+	Build time: %s
+	Version:    %s`, buildTime, appVersion)
+	return nil
+}
+
 var cli struct {
 	Debug     bool         `help:"Run the logger in debug mode."`
-	Download  DownloadCmd  `cmd:"" help:"Download a cyberdrop gallery"`
-	Rule34xxx Rule34xxxCmd `cmd:"" help:"Download a cyberdrop gallery"`
+	Cyberdrop CyberdropCmd `cmd:"" help:"Download a cyberdrop gallery"`
+	Rule34xxx Rule34xxxCmd `cmd:"" help:"Download a rule34.xxx gallery" name:"r34xxx"`
+	Version   VersionCmd   `cmd:"" help:"Print version"`
 }
 
 func generateLogger() *log.Logger {
@@ -69,7 +82,7 @@ func generateLogger() *log.Logger {
 func main() {
 	ctx := kong.Parse(&cli,
 		kong.Description(`
-A command for downloading from cyberdrop.me.
+A command for downloading from online galleries.
 	Note:
 		To find some good ones, try google searching: site:cyberdrop.me $WhoYouWant
 		For example: site:cyberdrop.me carrykey`,
