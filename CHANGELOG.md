@@ -1,3 +1,10 @@
+## v0.1.5 (2021-11-25)
+
+### Fix
+
+- **cli**: added version; update to cli strings
+- update to some struct structuring
+
 ## v0.1.4 (2021-11-23)
 
 ### Fix
