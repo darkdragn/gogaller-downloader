@@ -2,6 +2,7 @@ package rule34xxx
 
 import (
 	"fmt"
+	"math"
 	"net/url"
 	"strconv"
 	"sync"
@@ -35,12 +36,14 @@ func (g *R34xGallery) ImageList() (imgs []common.Image) {
 		syncLock  sync.RWMutex
 		wg        sync.WaitGroup
 	)
-	imgChan := make(chan common.Image)
+	imgChan := make(chan []common.Image)
 	limit := make(chan bool, 3)
+	pageTotal := int(math.Ceil(float64(pid) / float64(42)))
 
 	fmt.Print(chalk.Blue, "Scraping pages... \r")
 	pullPage := func(url string) {
 		limit <- true
+		var pageImgs []common.Image
 		doc = g.LoadDoc(url)
 		selection := doc.Find("span.thumb a")
 
@@ -48,17 +51,18 @@ func (g *R34xGallery) ImageList() (imgs []common.Image) {
 			url, exists := s.Attr("href")
 			if exists {
 				img := g.ParsePost(url)
-				imgChan <- img
-				imgCount += 1
+				pageImgs = append(pageImgs, img)
 			}
 		})
 		syncLock.Lock()
+		imgCount += len(pageImgs)
 		pageCount += 1
 		fmt.Print(
 			chalk.Blue, "Scraping pages... ",
-			chalk.Magenta, pageCount, "/", pid/42,
+			chalk.Magenta, pageCount, "/", pageTotal,
 			" ImageCount: ", imgCount, "\r",
 		)
+		imgChan <- pageImgs
 		syncLock.Unlock()
 		wg.Done()
 		<-limit
@@ -75,8 +79,9 @@ func (g *R34xGallery) ImageList() (imgs []common.Image) {
 		close(imgChan)
 	}()
 	for img := range imgChan {
-		imgs = append(imgs, img)
+		imgs = append(imgs, img...)
 	}
+	fmt.Println(chalk.Reset)
 	return
 }
 
@@ -87,7 +92,7 @@ func (g *R34xGallery) FindLast(doc goquery.Document) int {
 		pageParsed, _ := url.ParseQuery(page)
 		pid, err := strconv.Atoi(pageParsed["pid"][0])
 		g.Client.Catch(err)
-		return pid
+		return pid + 1
 	}
 	return 0
 }

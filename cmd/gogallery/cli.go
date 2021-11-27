@@ -44,7 +44,7 @@ func (r *CyberdropCmd) Run(logger *log.Logger) error {
 }
 
 func (r *Rule34xxxCmd) Run(logger *log.Logger) error {
-	c := common.New(logger, 15)
+	c := common.New(logger, 50)
 	g := rule34xxx.R34xGallery{
 		GalleryBase: common.GalleryBase{Client: c},
 		Tag:         r.Tag,
