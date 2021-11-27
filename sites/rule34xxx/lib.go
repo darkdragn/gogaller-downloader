@@ -1,12 +1,14 @@
 package rule34xxx
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/darkdragn/gogallery-downloader/common"
+	"github.com/ttacon/chalk"
 )
 
 type R34xGallery struct {
@@ -27,9 +29,16 @@ func (g *R34xGallery) ImageList() (imgs []common.Image) {
 	doc := g.LoadDoc(u.String())
 	pid := g.FindLast(*doc)
 
-	var wg sync.WaitGroup
+	var (
+		imgCount  int
+		pageCount int
+		syncLock  sync.RWMutex
+		wg        sync.WaitGroup
+	)
 	imgChan := make(chan common.Image)
 	limit := make(chan bool, 3)
+
+	fmt.Print(chalk.Blue, "Scraping pages... \r")
 	pullPage := func(url string) {
 		limit <- true
 		doc = g.LoadDoc(url)
@@ -40,8 +49,17 @@ func (g *R34xGallery) ImageList() (imgs []common.Image) {
 			if exists {
 				img := g.ParsePost(url)
 				imgChan <- img
+				imgCount += 1
 			}
 		})
+		syncLock.Lock()
+		pageCount += 1
+		fmt.Print(
+			chalk.Blue, "Scraping pages... ",
+			chalk.Magenta, pageCount, "/", pid/42,
+			" ImageCount: ", imgCount, "\r",
+		)
+		syncLock.Unlock()
 		wg.Done()
 		<-limit
 	}
