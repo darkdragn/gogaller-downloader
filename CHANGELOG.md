@@ -1,3 +1,11 @@
+## v0.1.7 (2021-11-27)
+
+### Fix
+
+- **r34xxx**: update for mutex on imgs scraping
+- **r34xxx**: update for progress while generating images
+- added chalk for styling on version; updated cyberdrop to use title attr for fn
+
 ## v0.1.6 (2021-11-25)
 
 ### Fix
