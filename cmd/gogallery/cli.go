@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/alecthomas/kong"
 	"github.com/darkdragn/gogallery-downloader/common"
 	"github.com/darkdragn/gogallery-downloader/sites/cyberdrop"
 	"github.com/darkdragn/gogallery-downloader/sites/rule34xxx"
 	log "github.com/sirupsen/logrus"
+	"github.com/ttacon/chalk"
 )
 
 var appVersion string
@@ -54,9 +57,14 @@ func (r *Rule34xxxCmd) Run(logger *log.Logger) error {
 }
 
 func (r *VersionCmd) Run(logger *log.Logger) error {
-	logger.Printf(`GoGallery Build Info:
-	Build time: %s
-	Version:    %s`, buildTime, appVersion)
+	// logger.Printf(`GoGallery Build Info:
+	lime := chalk.Green.NewStyle().
+		WithBackground(chalk.Black).
+		WithTextStyle(chalk.Bold).
+		Style
+	fmt.Println(chalk.Cyan, "GoGallery Build Info:")
+	fmt.Println(chalk.Magenta, "    Build time: ", lime(buildTime))
+	fmt.Println(chalk.Magenta, "    Version:    ", lime(appVersion))
 	return nil
 }
 

@@ -35,11 +35,14 @@ func (g *CyberdropGallery) ImageList() (imgs []common.Image) {
 	selection.Each(func(i int, s *goquery.Selection) {
 		url, exists := s.Attr("href")
 		if exists {
-			p := strings.Split(url, "/")
-			fn := p[len(p)-1]
+			filename, exists := s.Attr("title")
+			if !exists {
+				p := strings.Split(url, "/")
+				filename = p[len(p)-1]
+			}
 			imgs = append(imgs, common.Image{
 				Url:      url,
-				Filename: fn,
+				Filename: filename,
 			})
 		}
 	})
