@@ -17,18 +17,23 @@ func (g *CatboxGallery) Title() string {
 }
 
 func (g *CatboxGallery) ImageList() (imgs []common.Image) {
+	parseAndAdd := func(attr string) func(int, *goquery.Selection) {
+		return func(i int, s *goquery.Selection) {
+			url, exists := s.Attr(attr)
+			if exists {
+				p := strings.Split(url, "/")
+				filename := p[len(p)-1]
+				imgs = append(imgs, common.Image{
+					Url:      url,
+					Filename: filename,
+				})
+			}
+		}
+	}
 	doc := g.LoadDoc(g.Url)
 	selection := doc.Find(".imagecontainer a")
-	selection.Each(func(i int, s *goquery.Selection) {
-		url, exists := s.Attr("href")
-		if exists {
-			p := strings.Split(url, "/")
-			filename := p[len(p)-1]
-			imgs = append(imgs, common.Image{
-				Url:      url,
-				Filename: filename,
-			})
-		}
-	})
+	selection.Each(parseAndAdd("href"))
+	vidSelection := doc.Find("video")
+	vidSelection.Each(parseAndAdd("src"))
 	return
 }
