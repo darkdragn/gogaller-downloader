@@ -1,3 +1,9 @@
+## v0.2.0 (2021-11-29)
+
+### Feat
+
+- **catbox**: Initial catbox draft
+
 ## v0.1.7 (2021-11-27)
 
 ### Fix
