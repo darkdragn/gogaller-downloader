@@ -5,6 +5,7 @@ import (
 
 	"github.com/alecthomas/kong"
 	"github.com/darkdragn/gogallery-downloader/common"
+	"github.com/darkdragn/gogallery-downloader/sites/catbox"
 	"github.com/darkdragn/gogallery-downloader/sites/cyberdrop"
 	"github.com/darkdragn/gogallery-downloader/sites/rule34xxx"
 	log "github.com/sirupsen/logrus"
@@ -16,12 +17,29 @@ var buildTime string
 
 type VersionCmd struct{}
 
+type CatboxCmd struct {
+	Url string `arg:"" name:"url" help:"The gallery URL to download from."`
+}
+
 type CyberdropCmd struct {
 	Url []string `arg:"" name:"url" help:"The gallery URL to download from."`
 }
 
 type Rule34xxxCmd struct {
 	Tag string `arg:"" name:"tag" help:"The gallery tag to download from."`
+}
+
+func (r *CatboxCmd) Run(logger *log.Logger) error {
+	c := common.New(logger, 50)
+	g := catbox.CatboxGallery{
+		GalleryBase: common.GalleryBase{Client: c},
+		Url:         r.Url,
+	}
+	err := common.PullGallery(&g)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *CyberdropCmd) Run(logger *log.Logger) error {
@@ -70,6 +88,7 @@ func (r *VersionCmd) Run(logger *log.Logger) error {
 
 var cli struct {
 	Debug     bool         `help:"Run the logger in debug mode."`
+	Catbox    CatboxCmd    `cmd:"" help:"Download a catbox gallery"`
 	Cyberdrop CyberdropCmd `cmd:"" help:"Download a cyberdrop gallery"`
 	Rule34xxx Rule34xxxCmd `cmd:"" help:"Download a rule34.xxx gallery" name:"r34xxx"`
 	Version   VersionCmd   `cmd:"" help:"Print version"`
