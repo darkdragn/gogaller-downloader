@@ -1,3 +1,9 @@
+## v0.2.1 (2021-11-29)
+
+### Fix
+
+- **client**: udpate to preserve mtime on downloads
+
 ## v0.2.0 (2021-11-29)
 
 ### Feat
