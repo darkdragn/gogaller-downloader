@@ -1,3 +1,9 @@
+## v0.2.3 (2021-11-30)
+
+### Fix
+
+- **last-modified**: update for wrong filename
+
 ## v0.2.2 (2021-11-29)
 
 ### Fix
