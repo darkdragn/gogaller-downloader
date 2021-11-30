@@ -84,7 +84,7 @@ func (c *Client) PullImage(s string, filename string, folder string, completion 
 		if lastModified != "" {
 			format := "Mon, 02 Jan 2006 15:04:05 MST"
 			t, _ := time.Parse(format, lastModified)
-			err = os.Chtimes(filename, t, t)
+			err = os.Chtimes(fn, t, t)
 			c.Catch(err)
 		}
 		return nil
